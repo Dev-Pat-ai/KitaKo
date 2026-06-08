@@ -1,0 +1,115 @@
+﻿@model KitaKo.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="min-h-screen flex bg-orange-50">
+
+    <!-- Left side -->
+    <div class="w-8/12 relative bg-[#fde6cf] overflow-hidden">
+
+        <!-- Red and White -->
+        <div class="absolute top-0 left-0 w-full flex z-50">
+            <div class="flex-1 h-40 bg-red-500 rounded-b-full"></div>
+            <div class="flex-1 h-40 bg-white rounded-b-full"></div>
+            <div class="flex-1 h-40 bg-red-500 rounded-b-full"></div>
+            <div class="flex-1 h-40 bg-white rounded-b-full"></div>
+            <div class="flex-1 h-40 bg-red-500 rounded-b-full"></div>
+        </div>
+
+        <!-- Logo -->
+        <div class="absolute inset-0 flex items-center justify-center z-10">
+
+            <!-- Circle -->
+            <div class="absolute w-64 h-64 rounded-full bg-white/80"></div>
+
+            <!-- Text -->
+            <h1 class="relative text-6xl font-bold text-red-500 tracking-wider"
+                style="font-family: 'Playfair Display', serif;">
+                KitaKo
+            </h1>
+
+        </div>
+
+
+        <!-- Brown vertical -->
+        <div class="absolute bottom-40 w-full flex justify-center items-end">
+            <div class="w-14 h-[32rem] bg-[#d79a4d] mx-24"></div>
+            <div class="w-14 h-[32rem] bg-[#d79a4d] mx-24"></div>
+            <div class="w-14 h-[32rem] bg-[#d79a4d] mx-24"></div>
+            <div class="w-14 h-[32rem] bg-[#d79a4d] mx-24"></div>
+        </div>
+
+        <!-- Brown bottom -->
+        <div class="absolute bottom-0 w-full h-40 bg-[#d79a4d]"></div>
+    </div>
+
+
+    <!-- Right side -->
+    <div class="w-4/12 bg-white flex items-center justify-center px-12">
+        <div class="w-full max-w-sm">
+
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h2 class="text-red-600 font-semibold text-xl">LOG IN</h2>
+                <p class="text-gray-500 text-sm mt-1">Welcome back to KitaKo</p>
+            </div>
+
+            <!-- Errors -->
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+                    @Html.ValidationSummary(false, "", new { @class = "text-sm" })
+                </div>
+            }
+
+            <!-- Form -->
+            <form method="post" asp-action="Login" asp-controller="Home" class="space-y-5">
+
+                <div>
+                    <label class="block text-red-600 text-sm font-medium mb-2">
+                        Email / Username
+                    </label>
+                    <input asp-for="EmailOrUsername"
+                           class="w-full px-4 py-3 rounded bg-orange-50 border border-orange-100 focus:outline-none focus:border-red-300"
+                           placeholder="Enter your email or username"
+                           required />
+                </div>
+
+                <div>
+                    <label class="block text-red-600 text-sm font-medium mb-2">
+                        Password
+                    </label>
+                    <input asp-for="Password"
+                           type="password"
+                           class="w-full px-4 py-3 rounded bg-orange-50 border border-orange-100 focus:outline-none focus:border-red-300"
+                           placeholder="Enter your password"
+                           required />
+                </div>
+
+                <button type="submit"
+                        class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded transition">
+                    LOG IN
+                </button>
+            </form>
+
+            <!-- Footer Links -->
+            <div class="mt-6 text-center text-sm">
+                <p class="text-gray-600">
+                    Don’t have an account?
+                    <a href="@Url.Action("Signup", "Home")"
+                       class="text-red-600 font-medium hover:underline">
+                        SIGN UP
+                    </a>
+                </p>
+
+                <a href="@Url.Action("Index", "Home")"
+                   class="block mt-4 text-gray-500 hover:text-gray-700">
+                    ← Back to Home
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
