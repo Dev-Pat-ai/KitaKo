@@ -1,21 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
-using KitaKo.Models;
 using KitaKo.Services;
-using KitaKo.Data;
-using System.Collections.Generic;
+using KitaKo.Models;
 
 namespace KitaKo.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly KnapsackService _knapsackService;
         private readonly AuthService _authService;
-        private readonly ApplicationDbContext _dbContext;
 
-        public HomeController(ApplicationDbContext dbContext, KnapsackService knapsackService, AuthService authService)
+        public HomeController(AuthService authService)
         {
-            _knapsackService = knapsackService;
-            _dbContext = dbContext;
             _authService = authService;
         }
 
@@ -71,185 +65,7 @@ namespace KitaKo.Controllers
             return View();
         }
 
-        // API endpoint to save sale (connect with database)
-        [HttpPost]
-        public JsonResult AddSale([FromBody] Sale sale)
-        {
-            try
-            {
-                var userId = HttpContext.Session.GetString("UserId");
-                if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out var currentUserId))
-                {
-                    return Json(new { success = false, message = "User not logged in" });
-                }
-
-                if (!TryValidateModel(sale))
-                {
-                    return Json(new { success = false, message = "Please check the sale details and try again." });
-                }
-
-                sale.UserId = currentUserId;
-                sale.Date = DateTime.UtcNow;
-                _dbContext.Sales.Add(sale);
-                _dbContext.SaveChanges();
-                return Json(new { success = true, sale });
-            }
-            catch
-            {
-                return Json(new { success = false, message = "Unable to save sale right now." });
-            }
-        }
-
-        // API endpoint to save utang
-        [HttpPost]
-        public JsonResult AddUtang([FromBody] Utang utang)
-        {
-            try
-            {
-                var userId = HttpContext.Session.GetString("UserId");
-                if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out var currentUserId))
-                {
-                    return Json(new { success = false, message = "User not logged in" });
-                }
-
-                if (!TryValidateModel(utang))
-                {
-                    return Json(new { success = false, message = "Please check the utang details and try again." });
-                }
-
-                utang.UserId = currentUserId;
-                utang.CreatedDate = DateTime.UtcNow;
-                _dbContext.Utangs.Add(utang);
-                _dbContext.SaveChanges();
-                return Json(new { success = true, utang });
-            }
-            catch
-            {
-                return Json(new { success = false, message = "Unable to save utang right now." });
-            }
-        }
-
-        // API endpoint to mark utang as paid
-        [HttpPost]
-        public JsonResult MarkUtangPaid(int id)
-        {
-            try
-            {
-                var userId = HttpContext.Session.GetString("UserId");
-                if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out var currentUserId))
-                {
-                    return Json(new { success = false, message = "User not logged in" });
-                }
-
-                var utang = _dbContext.Utangs.FirstOrDefault(u => u.Id == id && u.UserId == currentUserId);
-                if (utang == null)
-                {
-                    return Json(new { success = false, message = "Utang not found" });
-                }
-
-                utang.Paid = true;
-                _dbContext.SaveChanges();
-                return Json(new { success = true });
-            }
-            catch
-            {
-                return Json(new { success = false, message = "Unable to update utang right now." });
-            }
-        }
-
-        // API endpoint to add expense
-        [HttpPost]
-        public JsonResult AddExpense([FromBody] Expenses expense)
-        {
-            try
-            {
-                var userId = HttpContext.Session.GetString("UserId");
-                if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out var currentUserId))
-                {
-                    return Json(new { success = false, message = "User not logged in" });
-                }
-
-                if (!TryValidateModel(expense))
-                {
-                    return Json(new { success = false, message = "Please check the expense details and try again." });
-                }
-
-                expense.UserId = currentUserId;
-                expense.CreatedDate = DateTime.UtcNow;
-                _dbContext.Expenses.Add(expense);
-                _dbContext.SaveChanges();
-                return Json(new { success = true, expense });
-            }
-            catch
-            {
-                return Json(new { success = false, message = "Unable to save expense right now." });
-            }
-        }
-
-        // API endpoint to optimize expenses using Knapsack Algorithm
-        [HttpPost]
-        public JsonResult OptimizeExpenses([FromBody] OptimizationRequest request)
-        {
-            var result = _knapsackService.OptimizeExpenses(request.Expenses, request.Budget);
-            return Json(new { success = true, result });
-        }
-
-        // API endpoint to mark expense as paid
-        [HttpPost]
-        public JsonResult MarkExpensePaid(int id)
-        {
-            try
-            {
-                var userId = HttpContext.Session.GetString("UserId");
-                if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out var currentUserId))
-                {
-                    return Json(new { success = false, message = "User not logged in" });
-                }
-
-                var expense = _dbContext.Expenses.FirstOrDefault(e => e.Id == id && e.UserId == currentUserId);
-                if (expense == null)
-                {
-                    return Json(new { success = false, message = "Expense not found" });
-                }
-
-                expense.Paid = true;
-                _dbContext.SaveChanges();
-                return Json(new { success = true });
-            }
-            catch
-            {
-                return Json(new { success = false, message = "Unable to update expense right now." });
-            }
-        }
-
-        // API endpoint to delete expense
-        [HttpPost]
-        public JsonResult DeleteExpense(int id)
-        {
-            try
-            {
-                var userId = HttpContext.Session.GetString("UserId");
-                if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out var currentUserId))
-                {
-                    return Json(new { success = false, message = "User not logged in" });
-                }
-
-                var expense = _dbContext.Expenses.FirstOrDefault(e => e.Id == id && e.UserId == currentUserId);
-                if (expense == null)
-                {
-                    return Json(new { success = false, message = "Expense not found" });
-                }
-
-                _dbContext.Expenses.Remove(expense);
-                _dbContext.SaveChanges();
-                return Json(new { success = true });
-            }
-            catch
-            {
-                return Json(new { success = false, message = "Unable to delete expense right now." });
-            }
-        }
-
+        //Go to Login
         //Go to Login
         [HttpGet]
         public IActionResult Login()
@@ -467,12 +283,4 @@ namespace KitaKo.Controllers
             return View();
         }
     }
-
-    //Request model for optimization
-    public class OptimizationRequest
-    {
-        public List<Expenses> Expenses { get; set; } = new List<Expenses>();
-        public decimal Budget { get; set; }
-    }
-
 }

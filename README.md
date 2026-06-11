@@ -1,65 +1,64 @@
-# KitaKo Web Application
+# KitaKo — Run Guide (Windows)
 
-KitaKo is a locally hosted web application designed to help users manage **budgets** and **sales** through a clean, simple, and intuitive interface. It is intended to be run locally for development, testing, or academic purposes.
+Simple steps to run KitaKo locally using PowerShell.
 
----
+1) Open PowerShell inside the project folder
 
-## System Requirements
+```powershell
+cd C:\Users\charm\Documents\GitHub\KitaKo\KitaKo
+```
 
-To run the KitaKo application locally, ensure that your system meets the following requirements:
+2) Create or edit `appsettings.Development.json`
 
-- Desktop or laptop computer
-- Stable internet connection
-- Modern web browser  
-  - Google Chrome  
-  - Microsoft Edge  
-  - Mozilla Firefox
-- One of the following development tools:
-  - Git
-  - Microsoft Visual Studio
+- If the file is missing, copy from `appsettings.json`:
 
----
+```powershell
+Copy-Item .\appsettings.json .\appsettings.Development.json
+```
 
-## Downloading the Source Code
+- Open the file and set your PostgreSQL connection string:
 
-1. Open a web browser and navigate to the **KitaKo GitHub repository**.
-2. Choose one of the following options:
-   - Clone the repository using Git  
-   - Download the project as a ZIP file
-3. If downloaded as a ZIP file, extract the contents to your preferred local directory.
+```json
+"ConnectionStrings": {
+  "DefaultConnection": "Host=localhost;Port=5432;Database=kitako_dev;Username=DB_USER;Password=DB_PASS"
+}
+```
 
----
+3) Install EF Core tool if needed
 
-## Opening the Project Locally
+```powershell
+dotnet tool install --global dotnet-ef
+```
 
-1. Open **Visual Studio** or another compatible IDE.
-2. Load the extracted KitaKo project folder.
-3. Verify that all required project files and dependencies are present.
+4) Apply database migrations
 
----
+```powershell
+dotnet ef database update
+```
 
-## Running the Application on Localhost
+5) Run the app
 
-1. Open the project in your IDE.
-2. Restore all dependencies if prompted.
-3. Click the **Run** button to build and execute the application.
-4. The application will automatically start on a local host server.
+```powershell
+$Env:ASPNETCORE_ENVIRONMENT = "Development"
+dotnet run
+```
 
----
+6) Open the browser
 
-## Accessing the Application
+- Use the URL shown in the terminal.
+- Most likely: `https://localhost:5001`
 
-1. Once the application is running, the KitaKo landing page will open in your web browser.
-2. From there, users can:
-   - Create a new account
-   - Log in to an existing account
-3. Begin managing budgets and sales through the dashboard.
+### If `dotnet ef` does not run
 
----
+```powershell
+$env:PATH += ";" + $env:USERPROFILE + "\.dotnet\tools"
+dotnet ef database update
+```
 
-## Notes
+### Quick built-in commands
 
-- Ensure all dependencies are properly restored before running the project.
-- If the application requires database connectivity:
-  - Confirm that the database service is running locally
-  - Verify that the connection settings are correctly configured
+```powershell
+dotnet build
+dotnet run
+```
+

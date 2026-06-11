@@ -26,7 +26,6 @@ namespace KitaKo
             // Add generic repository
             builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             builder.Services.AddScoped<AuthService>();
-            builder.Services.AddScoped<KnapsackService>();
             builder.Services.AddScoped<SalesService>();
             builder.Services.AddScoped<ExpensesService>();
             builder.Services.AddScoped<UtangsService>();
