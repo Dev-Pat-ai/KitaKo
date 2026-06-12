@@ -1,6 +1,9 @@
 using KitaKo.Data;
 using KitaKo.Models;
 using Microsoft.AspNetCore.Identity;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -54,7 +57,154 @@ namespace KitaKo.Services
 
             _dbContext.Users.Add(user);
             _dbContext.SaveChanges();
+
+            SeedDefaultStoredProducts(user.Id);
+
             return user;
+        }
+
+        private void SeedDefaultStoredProducts(int userId)
+        {
+            var defaultProducts = GetDefaultStoredProducts(userId).ToList();
+            _dbContext.StoredProducts.AddRange(defaultProducts);
+            _dbContext.SaveChanges();
+        }
+
+        private IEnumerable<StoredProduct> GetDefaultStoredProducts(int userId)
+        {
+            var productsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "products");
+            if (!Directory.Exists(productsFolder))
+            {
+                return Enumerable.Empty<StoredProduct>();
+            }
+
+            var productFiles = Directory.EnumerateFiles(productsFolder, "*.*", SearchOption.AllDirectories)
+                .Where(path => AllowedImageExtensions.Contains(Path.GetExtension(path)))
+                .Select(path => Path.GetRelativePath(productsFolder, path).Replace('\\', '/'))
+                .Where(relativePath => !string.IsNullOrWhiteSpace(relativePath))
+                .Select(relativePath => new
+                {
+                    RelativePath = relativePath,
+                    ProductKey = Path.GetFileNameWithoutExtension(relativePath)
+                        .Replace('-', ' ')
+                        .Replace('_', ' ')
+                        .Replace("  ", " ")
+                        .Trim()
+                        .ToLowerInvariant()
+                })
+                .GroupBy(item => item.ProductKey)
+                .Select(group => group.OrderBy(item => item.RelativePath).First().RelativePath)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(path => path);
+
+            return productFiles.Select(relativePath =>
+            {
+                var productName = Path.GetFileNameWithoutExtension(relativePath)
+                    .Replace('-', ' ')
+                    .Replace('_', ' ')
+                    .Replace("  ", " ")
+                    .Trim();
+
+                return new StoredProduct
+                {
+                    UserId = userId,
+                    ProductName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(productName),
+                    Category = DetermineProductCategory(productName),
+                    DefaultPrice = DetermineProductPrice(productName),
+                    Barcode = null,
+                    UnitType = DetermineProductUnitType(productName),
+                    Supplier = "Local Supplier",
+                    ProductImage = $"/uploads/products/{relativePath}",
+                    DateCreated = DateTime.UtcNow,
+                    IsArchived = false
+                };
+            });
+        }
+
+        private static string DetermineProductCategory(string productName)
+        {
+            var lowerName = productName.ToLowerInvariant();
+
+            if (lowerName.Contains("water") || lowerName.Contains("tea") || lowerName.Contains("cola") || lowerName.Contains("gatorade") || lowerName.Contains("sprite") || lowerName.Contains("milk") || lowerName.Contains("royal tru") || lowerName.Contains("yakult"))
+            {
+                return "Beverages";
+            }
+
+            if (lowerName.Contains("noodles") || lowerName.Contains("bread") || lowerName.Contains("cookies") || lowerName.Contains("crackers") || lowerName.Contains("chips") || lowerName.Contains("candy") || lowerName.Contains("snack") || lowerName.Contains("sari sari") || lowerName.Contains("cornetto"))
+            {
+                return "Snacks";
+            }
+
+            if (lowerName.Contains("toothpaste") || lowerName.Contains("soap") || lowerName.Contains("patch") || lowerName.Contains("paracetamol") || lowerName.Contains("pain"))
+            {
+                return "Toiletries";
+            }
+
+            if (lowerName.Contains("battery") || lowerName.Contains("lighter"))
+            {
+                return "Supplies";
+            }
+
+            if (lowerName.Contains("ham") || lowerName.Contains("hotdog") || lowerName.Contains("pork") || lowerName.Contains("fish") || lowerName.Contains("kikiam") || lowerName.Contains("siomai") || lowerName.Contains("chicken") || lowerName.Contains("tocino") || lowerName.Contains("corned beef") || lowerName.Contains("burger") || lowerName.Contains("fish balls") || lowerName.Contains("nuggets"))
+            {
+                return "Meat & Seafood";
+            }
+
+            return "General";
+        }
+
+        private static decimal DetermineProductPrice(string productName)
+        {
+            var lowerName = productName.ToLowerInvariant();
+
+            if (lowerName.Contains("water") || lowerName.Contains("tea") || lowerName.Contains("cola") || lowerName.Contains("gatorade") || lowerName.Contains("sprite"))
+            {
+                return 25.00m;
+            }
+
+            if (lowerName.Contains("milk") || lowerName.Contains("yakult") || lowerName.Contains("cereal") || lowerName.Contains("nescafe") || lowerName.Contains("milo"))
+            {
+                return 55.00m;
+            }
+
+            if (lowerName.Contains("noodles") || lowerName.Contains("bread") || lowerName.Contains("cookies") || lowerName.Contains("crackers") || lowerName.Contains("chips") || lowerName.Contains("candy") || lowerName.Contains("cornetto"))
+            {
+                return 25.00m;
+            }
+
+            if (lowerName.Contains("ham") || lowerName.Contains("hotdog") || lowerName.Contains("pork") || lowerName.Contains("fish") || lowerName.Contains("kikiam") || lowerName.Contains("siomai") || lowerName.Contains("chicken") || lowerName.Contains("tocino") || lowerName.Contains("burger"))
+            {
+                return 120.00m;
+            }
+
+            if (lowerName.Contains("toothpaste") || lowerName.Contains("soap") || lowerName.Contains("patch") || lowerName.Contains("paracetamol") || lowerName.Contains("battery") || lowerName.Contains("lighter"))
+            {
+                return 30.00m;
+            }
+
+            return 50.00m;
+        }
+
+        private static string DetermineProductUnitType(string productName)
+        {
+            var lowerName = productName.ToLowerInvariant();
+
+            if (lowerName.Contains("bottle") || lowerName.Contains("milk") || lowerName.Contains("water") || lowerName.Contains("coke") || lowerName.Contains("cola") || lowerName.Contains("sprite") || lowerName.Contains("gatorade") || lowerName.Contains("yakult") || lowerName.Contains("tea"))
+            {
+                return "bottle";
+            }
+
+            if (lowerName.Contains("pack") || lowerName.Contains("sachet") || lowerName.Contains("pcs") || lowerName.Contains("piece") || lowerName.Contains("pieces") || lowerName.Contains("box") || lowerName.Contains("roll") || lowerName.Contains("bag"))
+            {
+                return "pack";
+            }
+
+            if (lowerName.Contains("kg") || lowerName.Contains("g") || lowerName.Contains("250") || lowerName.Contains("500") || lowerName.Contains("1kg") || lowerName.Contains("450g") || lowerName.Contains("100g") || lowerName.Contains("200g") || lowerName.Contains("150g") || lowerName.Contains("90g"))
+            {
+                return "pack";
+            }
+
+            return "piece";
         }
 
         public User? Login(string emailOrUsername, string password)
