@@ -30,6 +30,8 @@ namespace KitaKo
             builder.Services.AddScoped<ExpensesService>();
             builder.Services.AddScoped<UtangsService>();
             builder.Services.AddScoped<FinancialSettingsService>();
+            builder.Services.AddScoped<StoredProductsService>();
+            builder.Services.AddScoped<InventoryService>();
             builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
             builder.Services.AddControllersWithViews();
@@ -42,6 +44,19 @@ namespace KitaKo
             });
 
             var app = builder.Build();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                try
+                {
+                    dbContext.Database.Migrate();
+                }
+                catch
+                {
+                    // Migrations may fail if tables don't exist yet
+                }
+            }
 
             app.UseSession();
 

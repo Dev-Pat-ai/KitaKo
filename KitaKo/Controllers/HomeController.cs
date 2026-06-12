@@ -65,6 +65,17 @@ namespace KitaKo.Controllers
             return View();
         }
 
+        // Inventory and Product Master List Page
+        public IActionResult Inventory()
+        {
+            var userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("Login");
+            }
+            return View();
+        }
+
         //Go to Login
         //Go to Login
         [HttpGet]

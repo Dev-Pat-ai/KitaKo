@@ -23,15 +23,17 @@ async function fetchJson(url, options = {}) {
         throw new Error('Unauthorized');
     }
 
-    if (!response.ok) {
-        throw new Error(`Request failed: ${response.status}`);
-    }
-
     if (response.status === 204) {
         return null;
     }
 
-    return response.json();
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message || `Request failed: ${response.status}`);
+    }
+
+    return data;
 }
 
 function notifyDataChanged() {
