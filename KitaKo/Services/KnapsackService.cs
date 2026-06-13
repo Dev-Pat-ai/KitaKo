@@ -57,15 +57,10 @@ namespace KitaKo.Services
             decimal priorityScore = expense.Priority * 10;
 
             // Urgency weight: based on days until due
-            decimal urgencyScore = CalculateUrgencyScore(CalculateDaysUntilDue(expense.DueDate));
+            decimal urgencyScore = CalculateUrgencyScore(expense.DaysUntilDue);
 
             // Combined score (60% priority, 40% urgency)
             return (priorityScore * 0.6m) + (urgencyScore * 0.4m);
-        }
-
-        private int CalculateDaysUntilDue(DateTime dueDate)
-        {
-            return (dueDate.Date - DateTime.UtcNow.Date).Days;
         }
 
         /// <summary>
