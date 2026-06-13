@@ -16,8 +16,8 @@ namespace KitaKo.Models
 
         public DateTime DueDate { get; set; }
 
-        // FIX: expanded to 1-10 to match the UI dropdown
-        [Range(1, 10)]
+        // Reverted back to original 1-5 scale
+        [Range(1, 5)]
         public int Priority { get; set; }
 
         // NEW: expense category ("bill", "stock", "subscription", "other")

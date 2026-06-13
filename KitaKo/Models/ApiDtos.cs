@@ -25,10 +25,21 @@ namespace KitaKo.Models
 
         public DateTime DueDate { get; set; }
 
+        // Reverted back to original 1-5 scale
         [Range(1, 5)]
         public int Priority { get; set; }
 
+        // NEW: category field
+        [StringLength(50)]
+        public string? Category { get; set; }
+
         public bool Paid { get; set; }
+    }
+
+    public class OptimizeRequest
+    {
+        [Range(0.01, 9999999999999999.99)]
+        public decimal Budget { get; set; }
     }
 
     public class UtangRequest
@@ -42,6 +53,9 @@ namespace KitaKo.Models
 
         public DateTime DueDate { get; set; }
         public bool Paid { get; set; }
+
+        [StringLength(500)]
+        public string? Notes { get; set; }
     }
 
     public class FinancialSettingsRequest

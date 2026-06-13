@@ -841,9 +841,8 @@ function knapsackOptimizeLocal(budget) {
 // ==================== UI HELPERS ====================
 
 function getPriorityStars(priority) {
-    // Support 1-10 scale: show filled stars out of 10, clamped
-    const p = Math.min(Math.max(parseInt(priority) || 1, 1), 10);
-    return '★'.repeat(p) + '☆'.repeat(10 - p);
+    const p = Math.min(Math.max(parseInt(priority) || 1, 1), 5);
+    return '★'.repeat(p) + '☆'.repeat(5 - p);
 }
 
 function getDaysUntilDue(dueDate) {
@@ -884,16 +883,16 @@ function closeExpenseModal() {
     if (nameEl) nameEl.value = '';
     if (amountEl) amountEl.value = '';
     if (dueEl) dueEl.value = '';
-    if (prEl) prEl.value = '5';
+    if (prEl) prEl.value = '3';
     if (categoryEl) categoryEl.value = 'bill';
 
-    updatePriorityDisplay(5);
+    updatePriorityDisplay(3);
 }
 
 function updatePriorityDisplay(priority) {
     const stars = getPriorityStars(parseInt(priority));
     const disp = document.getElementById('priorityDisplay');
-    if (disp) disp.textContent = `${stars} (${priority}/10)`;
+    if (disp) disp.textContent = `${stars} (${priority}/5)`;
 }
 
 // ==================== EXPENSE ACTIONS ====================
