@@ -110,6 +110,24 @@ namespace KitaKo.Services
             return inventorySale;
         }
 
+        public async Task<InventoryItem?> UpdateInventoryItemAsync(int userId, int id, InventoryItemRequest request)
+        {
+            var item = await _dbContext.InventoryItems
+                .FirstOrDefaultAsync(i => i.Id == id && i.UserId == userId);
+
+            if (item == null) return null;
+
+            item.Quantity = request.Quantity;
+            item.CostPrice = request.CostPrice;
+            item.Price = request.Price;
+            item.ExpirationDate = request.ExpirationDate.HasValue
+                ? DateTime.SpecifyKind(request.ExpirationDate.Value, DateTimeKind.Utc)
+                : null;
+
+            await _dbContext.SaveChangesAsync();
+            return item;
+        }
+
         public async Task<InventorySale> SellStoredProductAsync(int userId, int storedProductId, int quantity)
         {
             // Find an inventory item for this product that has enough quantity

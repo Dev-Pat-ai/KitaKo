@@ -291,8 +291,10 @@
 
         async function loadSaleProducts() {
             try {
-                const res = await fetch('/api/storedproducts');
-                _saleProducts = await res.json();
+                const res = await fetch('/api/inventory');
+                const inventoryItems = await res.json();
+                // Only show items with stock remaining
+                _saleProducts = inventoryItems.filter(i => i.quantity > 0);
                 renderSaleGrid(_saleProducts);
             } catch {
                 document.getElementById('saleProductGrid').innerHTML =
@@ -308,13 +310,14 @@
         function renderSaleGrid(products) {
             const grid = document.getElementById('saleProductGrid');
             if (!products.length) {
-                grid.innerHTML = '<p class="col-span-3 text-center text-gray-400 text-sm py-4">No products found</p>';
+                grid.innerHTML = '<p class="col-span-3 text-center text-gray-400 text-sm py-4">No products in inventory</p>';
                 return;
             }
             grid.innerHTML = products.map(p => {
                 const isSelected = _saleSelected?.id === p.id;
-                const imgHtml = p.productImage
-                    ? `<img src="${p.productImage}" alt="${p.productName}" class="w-12 h-12 object-cover rounded-lg mx-auto mb-1" />`
+                const imgUrl = p.productImage || (p.product && p.product.productImage);
+                const imgHtml = imgUrl
+                    ? `<img src="${imgUrl}" alt="${p.productName}" class="w-12 h-12 object-cover rounded-lg mx-auto mb-1" />`
                     : `<div class="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center mx-auto mb-1">
                         <span class="text-orange-500 font-bold text-lg">${p.productName.charAt(0).toUpperCase()}</span>
                     </div>`;
@@ -325,7 +328,8 @@
                             style="min-height:80px">
                         ${imgHtml}
                         <div class="text-xs font-semibold text-gray-800 leading-tight mb-1 truncate">${p.productName}</div>
-                        <div class="text-xs font-bold text-orange-500">₱${Number(p.defaultPrice).toFixed(2)}</div>
+                        <div class="text-xs font-bold text-orange-500">₱${Number(p.price).toFixed(2)}</div>
+                        <div class="text-xs text-gray-400">Stock: ${p.quantity}</div>
                     </button>`;
             }).join('');
         }
@@ -338,24 +342,22 @@
             document.getElementById('saleSelectedName').classList.remove('text-gray-400');
             document.getElementById('saleSelectedName').classList.add('text-gray-800');
             updateSaleTotals();
-            renderSaleGrid(document.getElementById('productSearch').value
-                ? _saleProducts.filter(p => p.productName.toLowerCase().includes(document.getElementById('productSearch').value.toLowerCase()))
-                : _saleProducts);
+            const q = document.getElementById('productSearch').value.toLowerCase();
+            renderSaleGrid(q ? _saleProducts.filter(p => p.productName.toLowerCase().includes(q)) : _saleProducts);
         }
 
         function changeSaleQty(delta) {
             if (!_saleSelected) return;
-            _saleQty = Math.max(1, _saleQty + delta);
+            _saleQty = Math.max(1, Math.min(_saleSelected.quantity, _saleQty + delta));
             document.getElementById('saleQtyDisplay').textContent = _saleQty;
             updateSaleTotals();
         }
 
         function updateSaleTotals() {
-            const saleAmt = _saleSelected.defaultPrice * _saleQty;
+            const saleAmt = _saleSelected.price * _saleQty;
             const costPrice = _saleSelected.costPrice ?? 0;
-            const profit = (_saleSelected.defaultPrice - costPrice) * _saleQty;
+            const profit = (_saleSelected.price - costPrice) * _saleQty;
 
-            // Warn if cost price is not set
             const warningEl = document.getElementById('saleCostPriceWarning');
             if (warningEl) {
                 if (costPrice <= 0) {
@@ -377,10 +379,7 @@
             document.getElementById('addSaleBtn').disabled = false;
         }
 
-        // Override openSaleModal to also load products & reset state
-        const _origOpenSaleModal = typeof openSaleModal === 'function' ? openSaleModal : null;
         function openSaleModal() {
-            // reset state
             _saleSelected = null;
             _saleQty = 1;
             document.getElementById('productSearch').value = '';
@@ -393,12 +392,30 @@
             document.getElementById('saleProfit').value = '';
             document.getElementById('saleDescription').value = '';
             document.getElementById('addSaleBtn').disabled = true;
-
-            // show modal
             document.getElementById('saleModal').classList.remove('hidden');
-
-            // load products fresh
             loadSaleProducts();
+        }
+
+        async function addSale() {
+            if (!_saleSelected) return;
+            const inventoryItemId = _saleSelected.id;
+            const qty = parseInt(document.getElementById('saleQty').value, 10) || 1;
+            try {
+                await fetch(`/api/inventory/${inventoryItemId}/sell`, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ quantitySold: qty })
+                });
+                closeSaleModal();
+                updateDashboard();
+            } catch (e) {
+                alert(e.message || 'Unable to record sale.');
+            }
+        }
+
+        function closeSaleModal() {
+            document.getElementById('saleModal').classList.add('hidden');
         }
 
         document.addEventListener('DOMContentLoaded', function() {
