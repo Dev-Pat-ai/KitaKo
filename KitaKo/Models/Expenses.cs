@@ -16,8 +16,13 @@ namespace KitaKo.Models
 
         public DateTime DueDate { get; set; }
 
-        [Range(1, 5)]
+        // FIX: expanded to 1-10 to match the UI dropdown
+        [Range(1, 10)]
         public int Priority { get; set; }
+
+        // NEW: expense category ("bill", "stock", "subscription", "other")
+        [StringLength(50)]
+        public string? Category { get; set; }
 
         public bool Paid { get; set; }
         public DateTime CreatedDate { get; set; }
@@ -25,8 +30,11 @@ namespace KitaKo.Models
 
     public class ExpenseOptimizationResult
     {
-        public List<Expenses>? RecommendedExpenses { get; set; }
+        public List<Expenses> RecommendedExpenses { get; set; } = new();
+        public List<Expenses> SkippedExpenses { get; set; } = new();      // NEW: what was left out
         public decimal TotalOptimizedCost { get; set; }
         public decimal RemainingBudget { get; set; }
+        public int TotalPriorityScore { get; set; }                       // NEW: value maximized
+        public string? BudgetWarning { get; set; }                        // NEW: overdue alert
     }
 }
