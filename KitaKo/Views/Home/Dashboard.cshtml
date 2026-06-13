@@ -141,7 +141,7 @@
 
 <!-- Sale Modal -->
 <div id="saleModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 hidden">
-    <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+    <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl max-h-[90vh] flex flex-col">
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-2xl font-bold text-gray-800">Add Sale</h3>
             <button onclick="closeSaleModal()" class="text-gray-400 hover:text-gray-600">
@@ -151,54 +151,63 @@
             </button>
         </div>
 
-        <!-- Search -->
-        <input type="text" id="productSearch" placeholder="Search product..."
-               oninput="filterSaleProducts()"
-               class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm" />
+        <div class="overflow-y-auto flex-1 pr-1">
+            <!-- Search -->
+            <input type="text" id="productSearch" placeholder="Search product..."
+                   oninput="filterSaleProducts()"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm" />
 
-        <!-- Product Grid -->
-        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Choose a product</p>
-        <div id="saleProductGrid"
-             class="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto mb-4 pr-1">
-            <p class="col-span-3 text-center text-gray-400 text-sm py-4">Loading products...</p>
-        </div>
+            <!-- Product Grid -->
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Choose a product</p>
+            <div id="saleProductGrid"
+                 class="grid grid-cols-3 gap-2 max-h-44 overflow-y-auto mb-3 pr-1">
+                <p class="col-span-3 text-center text-gray-400 text-sm py-4">Loading products...</p>
+            </div>
 
-        <!-- Qty + selected name -->
-        <div class="flex items-center gap-3 mb-4 bg-gray-50 rounded-lg px-4 py-2">
-            <span id="saleSelectedName" class="text-sm text-gray-400 flex-1">No product selected</span>
-            <button onclick="changeSaleQty(-1)"
-                    class="w-8 h-8 rounded-lg border border-gray-300 bg-white text-gray-700 text-lg font-bold hover:bg-gray-100">−</button>
-            <span id="saleQtyDisplay" class="text-lg font-bold w-6 text-center text-gray-800">1</span>
-            <button onclick="changeSaleQty(1)"
-                    class="w-8 h-8 rounded-lg border border-gray-300 bg-white text-gray-700 text-lg font-bold hover:bg-gray-100">+</button>
-        </div>
+            <!-- Qty row for currently focused product -->
+            <div class="flex items-center gap-3 mb-3 bg-gray-50 rounded-lg px-4 py-2">
+                <span id="saleSelectedName" class="text-sm text-gray-400 flex-1">No product selected</span>
+                <button onclick="changeSaleQty(-1)"
+                        class="w-8 h-8 rounded-lg border border-gray-300 bg-white text-gray-700 text-lg font-bold hover:bg-gray-100">−</button>
+                <span id="saleQtyDisplay" class="text-lg font-bold w-6 text-center text-gray-800">1</span>
+                <button onclick="changeSaleQty(1)"
+                        class="w-8 h-8 rounded-lg border border-gray-300 bg-white text-gray-700 text-lg font-bold hover:bg-gray-100">+</button>
+                <button onclick="addToCart()"
+                        class="ml-1 px-3 py-1 bg-orange-500 text-white text-xs font-bold rounded-lg hover:bg-orange-600 disabled:opacity-40"
+                        id="addToCartBtn" disabled>
+                    + Add
+                </button>
+            </div>
 
-        <hr class="mb-4" />
+            <!-- Cart Items -->
+            <div id="saleCartSection" class="hidden mb-3">
+                <div class="flex items-center justify-between mb-1">
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Items in this transaction</p>
+                    <span id="saleCartBadge" class="text-xs bg-orange-100 text-orange-600 font-bold px-2 py-0.5 rounded-full">0</span>
+                </div>
+                <div id="saleCartList" class="space-y-1 max-h-32 overflow-y-auto"></div>
+            </div>
 
-        <!-- Totals -->
-        <div class="flex justify-between text-sm text-gray-600 mb-1">
-            <span>Sale amount</span>
-            <strong id="saleAmountDisplay" class="text-gray-800">₱0.00</strong>
-        </div>
-        <div class="flex justify-between text-sm text-green-600 mb-4">
-            <span>Profit</span>
-            <strong id="saleProfitDisplay">₱0.00</strong>
-        </div>
+            <div id="saleCostPriceWarning" class="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 p-3 mb-3 rounded hidden">
+                <p class="font-semibold text-sm">⚠ Cost Price Not Set</p>
+                <p class="text-xs mt-1">One or more items has no cost price. Profit tracking may be inaccurate.</p>
+            </div>
 
-        <!-- Hidden inputs still used by existing addSale() -->
-        <input type="hidden" id="saleAmount" />
-        <input type="hidden" id="saleProfit" />
-        <input type="hidden" id="saleProductId" />
-        <input type="hidden" id="saleQty" />
-        <input type="hidden" id="saleDescription" />
+            <hr class="mb-3" />
 
-        <div id="saleCostPriceWarning" class="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 p-3 mb-4 rounded hidden">
-            <p class="font-semibold text-sm">⚠ Cost Price Not Set</p>
-            <p class="text-xs mt-1">Edit the product in Inventory to set a cost price for accurate profit tracking.</p>
+            <!-- Totals -->
+            <div class="flex justify-between text-sm text-gray-600 mb-1">
+                <span>Sale amount</span>
+                <strong id="saleAmountDisplay" class="text-gray-800">₱0.00</strong>
+            </div>
+            <div class="flex justify-between text-sm text-green-600 mb-4">
+                <span>Profit</span>
+                <strong id="saleProfitDisplay">₱0.00</strong>
+            </div>
         </div>
 
         <button onclick="addSale()" id="addSaleBtn" disabled
-                class="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                class="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed mt-2">
             Add Sale
         </button>
     </div>
@@ -284,16 +293,16 @@
     
     <script>
         
-        // ── Quick-Sale Modal ──────────────────────────────────────
+        // ── Multi-Product Sale Modal ──────────────────────────────
         let _saleProducts = [];
         let _saleSelected = null;
         let _saleQty = 1;
+        let _saleCart = []; // [{ product, qty }]
 
         async function loadSaleProducts() {
             try {
                 const res = await fetch('/api/inventory');
                 const inventoryItems = await res.json();
-                // Only show items with stock remaining
                 _saleProducts = inventoryItems.filter(i => i.quantity > 0);
                 renderSaleGrid(_saleProducts);
             } catch {
@@ -315,17 +324,23 @@
             }
             grid.innerHTML = products.map(p => {
                 const isSelected = _saleSelected?.id === p.id;
+                const inCart = _saleCart.find(c => c.product.id === p.id);
                 const imgUrl = p.productImage || (p.product && p.product.productImage);
                 const imgHtml = imgUrl
                     ? `<img src="${imgUrl}" alt="${p.productName}" class="w-12 h-12 object-cover rounded-lg mx-auto mb-1" />`
                     : `<div class="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center mx-auto mb-1">
                         <span class="text-orange-500 font-bold text-lg">${p.productName.charAt(0).toUpperCase()}</span>
                     </div>`;
+                const cartBadge = inCart
+                    ? `<div class="absolute top-1 right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
+                        <span class="text-white text-[9px] font-bold">${inCart.qty}</span>
+                       </div>` : '';
                 return `
                     <button onclick="selectSaleProduct(${p.id})"
-                            class="sale-product-btn rounded-xl border p-2 text-center cursor-pointer transition-all
-                                ${isSelected ? 'border-orange-500 bg-orange-50' : 'border-gray-200 bg-white hover:border-orange-300'}"
+                            class="sale-product-btn relative rounded-xl border p-2 text-center cursor-pointer transition-all
+                                ${isSelected ? 'border-orange-500 bg-orange-50 ring-2 ring-orange-300' : inCart ? 'border-orange-300 bg-orange-50/50' : 'border-gray-200 bg-white hover:border-orange-300'}"
                             style="min-height:80px">
+                        ${cartBadge}
                         ${imgHtml}
                         <div class="text-xs font-semibold text-gray-800 leading-tight mb-1 truncate">${p.productName}</div>
                         <div class="text-xs font-bold text-orange-500">₱${Number(p.price).toFixed(2)}</div>
@@ -336,77 +351,126 @@
 
         function selectSaleProduct(id) {
             _saleSelected = _saleProducts.find(p => p.id === id);
-            _saleQty = 1;
-            document.getElementById('saleQtyDisplay').textContent = 1;
+            // Pre-fill qty from cart if already added
+            const existing = _saleCart.find(c => c.product.id === id);
+            _saleQty = existing ? existing.qty : 1;
+            document.getElementById('saleQtyDisplay').textContent = _saleQty;
             document.getElementById('saleSelectedName').textContent = _saleSelected.productName;
-            document.getElementById('saleSelectedName').classList.remove('text-gray-400');
-            document.getElementById('saleSelectedName').classList.add('text-gray-800');
-            updateSaleTotals();
+            document.getElementById('saleSelectedName').className = 'text-sm text-gray-800 flex-1 font-medium truncate';
+            document.getElementById('addToCartBtn').disabled = false;
             const q = document.getElementById('productSearch').value.toLowerCase();
             renderSaleGrid(q ? _saleProducts.filter(p => p.productName.toLowerCase().includes(q)) : _saleProducts);
         }
 
         function changeSaleQty(delta) {
             if (!_saleSelected) return;
-            _saleQty = Math.max(1, Math.min(_saleSelected.quantity, _saleQty + delta));
+            const cartedQty = _saleCart.filter(c => c.product.id !== _saleSelected.id).reduce((s, c) => s, 0);
+            const maxQty = _saleSelected.quantity;
+            _saleQty = Math.max(1, Math.min(maxQty, _saleQty + delta));
             document.getElementById('saleQtyDisplay').textContent = _saleQty;
+        }
+
+        function addToCart() {
+            if (!_saleSelected) return;
+            const existing = _saleCart.find(c => c.product.id === _saleSelected.id);
+            if (existing) {
+                existing.qty = _saleQty;
+            } else {
+                _saleCart.push({ product: _saleSelected, qty: _saleQty });
+            }
+            // Reset selection
+            _saleSelected = null;
+            _saleQty = 1;
+            document.getElementById('saleQtyDisplay').textContent = 1;
+            document.getElementById('saleSelectedName').textContent = 'No product selected';
+            document.getElementById('saleSelectedName').className = 'text-sm text-gray-400 flex-1';
+            document.getElementById('addToCartBtn').disabled = true;
+            renderCartList();
             updateSaleTotals();
+            const q = document.getElementById('productSearch').value.toLowerCase();
+            renderSaleGrid(q ? _saleProducts.filter(p => p.productName.toLowerCase().includes(q)) : _saleProducts);
+        }
+
+        function removeFromCart(productId) {
+            _saleCart = _saleCart.filter(c => c.product.id !== productId);
+            if (_saleSelected?.id === productId) {
+                _saleSelected = null;
+                _saleQty = 1;
+                document.getElementById('saleQtyDisplay').textContent = 1;
+                document.getElementById('saleSelectedName').textContent = 'No product selected';
+                document.getElementById('saleSelectedName').className = 'text-sm text-gray-400 flex-1';
+                document.getElementById('addToCartBtn').disabled = true;
+            }
+            renderCartList();
+            updateSaleTotals();
+            const q = document.getElementById('productSearch').value.toLowerCase();
+            renderSaleGrid(q ? _saleProducts.filter(p => p.productName.toLowerCase().includes(q)) : _saleProducts);
+        }
+
+        function renderCartList() {
+            const section = document.getElementById('saleCartSection');
+            const list = document.getElementById('saleCartList');
+            const badge = document.getElementById('saleCartBadge');
+            if (!_saleCart.length) {
+                section.classList.add('hidden');
+                return;
+            }
+            section.classList.remove('hidden');
+            badge.textContent = _saleCart.length;
+            list.innerHTML = _saleCart.map(c => `
+                <div class="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-1.5 text-sm">
+                    <span class="text-gray-800 font-medium truncate flex-1">${c.product.productName}</span>
+                    <span class="text-gray-500 mx-2">x${c.qty}</span>
+                    <span class="text-orange-500 font-bold mr-2">₱${(c.product.price * c.qty).toFixed(2)}</span>
+                    <button onclick="removeFromCart(${c.product.id})" class="text-gray-300 hover:text-red-400 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>`).join('');
         }
 
         function updateSaleTotals() {
-            const saleAmt = _saleSelected.price * _saleQty;
-            const costPrice = _saleSelected.costPrice ?? 0;
-            const profit = (_saleSelected.price - costPrice) * _saleQty;
+            const totalAmt = _saleCart.reduce((s, c) => s + c.product.price * c.qty, 0);
+            const totalProfit = _saleCart.reduce((s, c) => s + ((c.product.price - (c.product.costPrice ?? 0)) * c.qty), 0);
+            const hasMissingCost = _saleCart.some(c => (c.product.costPrice ?? 0) <= 0);
 
-            const warningEl = document.getElementById('saleCostPriceWarning');
-            if (warningEl) {
-                if (costPrice <= 0) {
-                    warningEl.classList.remove('hidden');
-                } else {
-                    warningEl.classList.add('hidden');
-                }
-            }
-
-            document.getElementById('saleAmountDisplay').textContent = '₱' + saleAmt.toFixed(2);
-            document.getElementById('saleProfitDisplay').textContent = '₱' + profit.toFixed(2);
-
-            document.getElementById('saleAmount').value = saleAmt.toFixed(2);
-            document.getElementById('saleProfit').value = profit.toFixed(2);
-            document.getElementById('saleProductId').value = _saleSelected.id;
-            document.getElementById('saleQty').value = _saleQty;
-            document.getElementById('saleDescription').value = `${_saleSelected.productName} x${_saleQty}`;
-
-            document.getElementById('addSaleBtn').disabled = false;
+            document.getElementById('saleCostPriceWarning').classList.toggle('hidden', !hasMissingCost || _saleCart.length === 0);
+            document.getElementById('saleAmountDisplay').textContent = '₱' + totalAmt.toFixed(2);
+            document.getElementById('saleProfitDisplay').textContent = '₱' + totalProfit.toFixed(2);
+            document.getElementById('addSaleBtn').disabled = _saleCart.length === 0;
         }
 
         function openSaleModal() {
             _saleSelected = null;
             _saleQty = 1;
+            _saleCart = [];
             document.getElementById('productSearch').value = '';
             document.getElementById('saleQtyDisplay').textContent = 1;
             document.getElementById('saleSelectedName').textContent = 'No product selected';
             document.getElementById('saleSelectedName').className = 'text-sm text-gray-400 flex-1';
             document.getElementById('saleAmountDisplay').textContent = '₱0.00';
             document.getElementById('saleProfitDisplay').textContent = '₱0.00';
-            document.getElementById('saleAmount').value = '';
-            document.getElementById('saleProfit').value = '';
-            document.getElementById('saleDescription').value = '';
             document.getElementById('addSaleBtn').disabled = true;
+            document.getElementById('addToCartBtn').disabled = true;
+            document.getElementById('saleCartSection').classList.add('hidden');
+            document.getElementById('saleCostPriceWarning').classList.add('hidden');
             document.getElementById('saleModal').classList.remove('hidden');
             loadSaleProducts();
         }
 
         async function addSale() {
-            if (!_saleSelected) return;
-            const inventoryItemId = _saleSelected.id;
-            const qty = parseInt(document.getElementById('saleQty').value, 10) || 1;
+            if (!_saleCart.length) return;
             try {
-                await fetch(`/api/inventory/${inventoryItemId}/sell`, {
-                    method: 'POST',
-                    credentials: 'same-origin',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ quantitySold: qty })
-                });
+                // Fire all sell requests in parallel
+                await Promise.all(_saleCart.map(c =>
+                    fetch(`/api/inventory/${c.product.id}/sell`, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ quantitySold: c.qty })
+                    })
+                ));
                 closeSaleModal();
                 updateDashboard();
             } catch (e) {
