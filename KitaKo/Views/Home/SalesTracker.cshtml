@@ -149,7 +149,14 @@
         <!-- Hidden inputs still used by existing addSale() -->
         <input type="hidden" id="saleAmount" />
         <input type="hidden" id="saleProfit" />
+        <input type="hidden" id="saleProductId" />
+        <input type="hidden" id="saleQty" />
         <input type="hidden" id="saleDescription" />
+
+        <div id="saleCostPriceWarning" class="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 p-3 mb-4 rounded hidden">
+            <p class="font-semibold text-sm">⚠ Cost Price Not Set</p>
+            <p class="text-xs mt-1">Edit the product in Inventory to set a cost price for accurate profit tracking.</p>
+        </div>
 
         <button onclick="addSale()" id="addSaleBtn" disabled
                 class="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
@@ -231,13 +238,26 @@
 
         function updateSaleTotals() {
             const saleAmt = _saleSelected.defaultPrice * _saleQty;
-            const profit = (_saleSelected.defaultPrice - (_saleSelected.costPrice ?? _saleSelected.defaultPrice)) * _saleQty;
+            const costPrice = _saleSelected.costPrice ?? 0;
+            const profit = (_saleSelected.defaultPrice - costPrice) * _saleQty;
+
+            // Warn if cost price is not set
+            const warningEl = document.getElementById('saleCostPriceWarning');
+            if (warningEl) {
+                if (costPrice <= 0) {
+                    warningEl.classList.remove('hidden');
+                } else {
+                    warningEl.classList.add('hidden');
+                }
+            }
 
             document.getElementById('saleAmountDisplay').textContent = '₱' + saleAmt.toFixed(2);
             document.getElementById('saleProfitDisplay').textContent = '₱' + profit.toFixed(2);
 
             document.getElementById('saleAmount').value = saleAmt.toFixed(2);
             document.getElementById('saleProfit').value = profit.toFixed(2);
+            document.getElementById('saleProductId').value = _saleSelected.id;
+            document.getElementById('saleQty').value = _saleQty;
             document.getElementById('saleDescription').value = `${_saleSelected.name} x${_saleQty}`;
 
             document.getElementById('addSaleBtn').disabled = false;

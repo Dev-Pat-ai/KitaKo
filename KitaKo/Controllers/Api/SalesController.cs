@@ -8,10 +8,12 @@ namespace KitaKo.Controllers
     public class SalesController : AuthenticatedApiController
     {
         private readonly SalesService _salesService;
+        private readonly InventoryService _inventoryService;
 
-        public SalesController(SalesService salesService)
+        public SalesController(SalesService salesService, InventoryService inventoryService)
         {
             _salesService = salesService;
+            _inventoryService = inventoryService ?? throw new ArgumentNullException(nameof(inventoryService));
         }
 
         [HttpGet]
@@ -47,6 +49,29 @@ namespace KitaKo.Controllers
 
             var sale = await _salesService.CreateSaleAsync(userId, request);
             return CreatedAtAction(nameof(GetSale), new { id = sale.Id }, sale);
+        }
+
+        [HttpPost("quick")]
+        public async Task<IActionResult> QuickSale(QuickSaleRequest request)
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                var inventorySale = await _inventoryService.SellStoredProductAsync(userId, request.ProductId, request.Quantity);
+                return Ok(inventorySale);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPut("{id}")]

@@ -105,12 +105,14 @@ namespace KitaKo.Services
                     .Replace("  ", " ")
                     .Trim();
 
+                var defaultPrice = DetermineProductPrice(productName);
                 return new StoredProduct
                 {
                     UserId = userId,
                     ProductName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(productName),
                     Category = DetermineProductCategory(productName),
-                    DefaultPrice = DetermineProductPrice(productName),
+                    DefaultPrice = defaultPrice,
+                    CostPrice = DetermineCostPrice(defaultPrice),
                     Barcode = null,
                     UnitType = DetermineProductUnitType(productName),
                     Supplier = "Local Supplier",
@@ -183,6 +185,12 @@ namespace KitaKo.Services
             }
 
             return 50.00m;
+        }
+
+        private static decimal DetermineCostPrice(decimal defaultPrice)
+        {
+            // Set cost price to approximately 60% of selling price (40% margin)
+            return Math.Round(defaultPrice * 0.60m, 2);
         }
 
         private static string DetermineProductUnitType(string productName)

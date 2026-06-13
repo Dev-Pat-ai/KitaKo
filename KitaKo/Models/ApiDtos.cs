@@ -66,6 +66,9 @@ namespace KitaKo.Models
         [Range(0, 9999999999999999.99)]
         public decimal DefaultPrice { get; set; }
 
+        [Range(0, 9999999999999999.99)]
+        public decimal CostPrice { get; set; }
+
         [StringLength(100)]
         public string? Barcode { get; set; }
 
@@ -101,5 +104,14 @@ namespace KitaKo.Models
     {
         [Range(1, int.MaxValue)]
         public int QuantitySold { get; set; }
+    }
+
+    public class QuickSaleRequest
+    {
+        [Range(1, int.MaxValue)]
+        public int ProductId { get; set; }
+
+        [Range(1, int.MaxValue)]
+        public int Quantity { get; set; }
     }
 }

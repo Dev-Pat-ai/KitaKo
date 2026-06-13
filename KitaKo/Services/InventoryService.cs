@@ -109,5 +109,24 @@ namespace KitaKo.Services
 
             return inventorySale;
         }
-    }
+
+        public async Task<InventorySale> SellStoredProductAsync(int userId, int storedProductId, int quantity)
+        {
+            // Find an inventory item for this product that has enough quantity
+            var inventoryItem = await _dbContext.InventoryItems
+                .Where(i => i.UserId == userId && i.ProductId == storedProductId && i.Quantity >= quantity)
+                .OrderBy(i => i.ExpirationDate ?? DateTime.MaxValue)
+                .ThenBy(i => i.DateAdded)
+                .FirstOrDefaultAsync();
+
+            if (inventoryItem == null)
+            {
+                throw new KeyNotFoundException("No inventory item with enough quantity found for this product.");
+            }
+
+            var request = new InventorySaleRequest { QuantitySold = quantity };
+            return await SellInventoryItemAsync(userId, inventoryItem.Id, request);
+        }
+}
+
 }

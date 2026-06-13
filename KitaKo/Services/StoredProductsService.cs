@@ -49,6 +49,7 @@ namespace KitaKo.Services
                 ProductName = NormalizeRequired(request.ProductName),
                 Category = NormalizeRequired(request.Category),
                 DefaultPrice = request.DefaultPrice,
+                CostPrice = request.CostPrice,
                 Barcode = NormalizeOptional(request.Barcode),
                 UnitType = NormalizeRequired(request.UnitType),
                 Supplier = NormalizeOptional(request.Supplier),
@@ -74,6 +75,7 @@ namespace KitaKo.Services
             product.ProductName = NormalizeRequired(request.ProductName);
             product.Category = NormalizeRequired(request.Category);
             product.DefaultPrice = request.DefaultPrice;
+            product.CostPrice = request.CostPrice;
             product.Barcode = NormalizeOptional(request.Barcode);
             product.UnitType = NormalizeRequired(request.UnitType);
             product.Supplier = NormalizeOptional(request.Supplier);
