@@ -23,17 +23,15 @@ async function fetchJson(url, options = {}) {
         throw new Error('Unauthorized');
     }
 
+    if (!response.ok) {
+        throw new Error(`Request failed: ${response.status}`);
+    }
+
     if (response.status === 204) {
         return null;
     }
 
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.message || `Request failed: ${response.status}`);
-    }
-
-    return data;
+    return response.json();
 }
 
 function notifyDataChanged() {
@@ -208,39 +206,19 @@ async function addSale() {
     const amount = parseFloat(document.getElementById('saleAmount').value);
     const profit = parseFloat(document.getElementById('saleProfit').value);
     const description = document.getElementById('saleDescription').value;
-    const productIdEl = document.getElementById('saleProductId');
-    const qtyEl = document.getElementById('saleQty');
-    const productId = productIdEl ? parseInt(productIdEl.value) : NaN;
-    const qty = qtyEl ? parseInt(qtyEl.value) : NaN;
 
     if (!amount || isNaN(amount) || (!Number.isFinite(profit) && profit !== 0) || isNaN(profit)) {
         alert('Please fill in amount and profit fields');
         return;
     }
 
-    // If productId and qty are present, attempt quick inventory sale
+    const sale = {
+        amount: amount,
+        profit: profit,
+        description: description || 'Sale'
+    };
+
     try {
-        if (Number.isFinite(productId) && productId > 0 && Number.isFinite(qty) && qty > 0) {
-            await fetchJson('/api/sales/quick', {
-                method: 'POST',
-                body: JSON.stringify({ productId: productId, quantity: qty })
-            });
-
-            // Refresh sales and inventory UI
-            await refreshSalesFromServer();
-            closeSaleModal();
-            if (typeof updateDashboard === 'function') updateDashboard();
-            if (typeof updateSalesTracker === 'function') updateSalesTracker();
-            showNotification('Sale recorded and inventory updated!', 'success');
-            return;
-        }
-
-        const sale = {
-            amount: amount,
-            profit: profit,
-            description: description || 'Sale'
-        };
-
         const createdSale = await fetchJson('/api/sales', {
             method: 'POST',
             body: JSON.stringify(sale)
@@ -326,7 +304,7 @@ async function addUtang() {
             // Refresh data from server
             await refreshUtangsFromServer();
             closeUtangModal();
-            
+
             // Update UI based on current page
             if (typeof updateDashboard === 'function') updateDashboard();
             if (typeof updateUtangLogs === 'function') updateUtangLogs();
@@ -620,7 +598,7 @@ async function updateSalesTracker() {
 
 function updateUtangLogs() {
     refreshDataFromStorage();
-    
+
     // Try to fetch from server, fallback to localStorage
     fetch('/api/utangs', { credentials: 'same-origin' })
         .then(response => {
@@ -1059,7 +1037,7 @@ async function updateExpensesPage() {
                                     </li>
                                 `).join('')}
                                </ul>`
-        }
+            }
                     <div class="mt-4 pt-4 border-t border-white/20">
                         <div class="flex justify-between font-semibold">
                             <span>Total Optimized Cost:</span>
@@ -1497,15 +1475,14 @@ function getMonthsOverdue(dueDate) {
 // Notification system
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white font-semibold ${
-        type === 'success' ? 'bg-green-500' : 
-        type === 'error' ? 'bg-red-500' : 
-        'bg-blue-500'
-    } shadow-lg z-50`;
+    notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white font-semibold ${type === 'success' ? 'bg-green-500' :
+            type === 'error' ? 'bg-red-500' :
+                'bg-blue-500'
+        } shadow-lg z-50`;
     notification.textContent = message;
-    
+
     document.body.appendChild(notification);
-    
+
     setTimeout(() => {
         notification.remove();
     }, 3000);
