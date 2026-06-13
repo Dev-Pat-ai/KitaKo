@@ -8,10 +8,12 @@ namespace KitaKo.Controllers
     public class ExpensesController : AuthenticatedApiController
     {
         private readonly ExpensesService _expensesService;
+        private readonly KnapsackService _knapsackService;
 
-        public ExpensesController(ExpensesService expensesService)
+        public ExpensesController(ExpensesService expensesService, KnapsackService knapsackService)
         {
             _expensesService = expensesService;
+            _knapsackService = knapsackService;
         }
 
         [HttpGet]
@@ -85,6 +87,29 @@ namespace KitaKo.Controllers
 
             await _expensesService.ClearExpensesAsync(userId);
             return NoContent();
+        }
+
+        /// <summary>
+        /// Optimizes expense payments based on available budget, priority, and due dates.
+        /// Returns recommended expenses to pay within the budget.
+        /// </summary>
+        [HttpGet("optimize")]
+        public async Task<ActionResult<ExpenseOptimizationResult>> OptimizeExpenses([FromQuery] decimal budget)
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return Unauthorized();
+            }
+
+            if (budget < 0)
+            {
+                return BadRequest("Budget must be non-negative");
+            }
+
+            var userExpenses = await _expensesService.GetExpensesAsync(userId);
+            var result = _knapsackService.OptimizeExpenses(userExpenses, budget);
+            
+            return Ok(result);
         }
     }
 }

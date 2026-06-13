@@ -4,13 +4,17 @@ namespace KitaKo.Services
 {
     public class KnapsackService
     {
+        /// <summary>
+        /// Optimizes expense payments using a modified knapsack algorithm that considers:
+        /// - Priority (importance)
+        /// - Urgency (days until due)
+        /// - Amount (cost)
+        /// </summary>
         public ExpenseOptimizationResult OptimizeExpenses(List<Expenses> expenses, decimal budget)
         {
-            var unpaidExpenses = expenses.Where(e => !e.Paid).ToList();
-            int n = unpaidExpenses.Count;
-            int W = (int)budget;
-
-            if (n == 0 || W == 0)
+            var unpaidExpenses = expenses.Where(e => !e.Paid).OrderByDescending(e => CalculateScore(e)).ToList();
+            
+            if (unpaidExpenses.Count == 0 || budget <= 0)
             {
                 return new ExpenseOptimizationResult
                 {
@@ -20,40 +24,16 @@ namespace KitaKo.Services
                 };
             }
 
-            // Create DP table
-            int[,] dp = new int[n + 1, W + 1];
+            // Use greedy algorithm with scoring instead of knapsack for decimal precision
+            var selectedExpenses = new List<Expenses>();
+            decimal remainingBudget = budget;
 
-            // Fill DP table
-            for (int i = 1; i <= n; i++)
+            foreach (var expense in unpaidExpenses)
             {
-                var expense = unpaidExpenses[i - 1];
-                int weight = (int)expense.Amount;
-                int value = expense.Priority * 100;
-
-                for (int w = 0; w <= W; w++)
+                if (expense.Amount <= remainingBudget)
                 {
-                    if (weight <= w)
-                    {
-                        dp[i, w] = Math.Max(dp[i - 1, w], dp[i - 1, w - weight] + value);
-                    }
-                    else
-                    {
-                        dp[i, w] = dp[i - 1, w];
-                    }
-                }
-            }
-
-            // Backtrack to find which expenses to include
-            List<Expenses> selectedExpenses = new List<Expenses>();
-            int budgetRemaining = W;
-
-            for (int i = n; i > 0 && budgetRemaining > 0; i--)
-            {
-                if (dp[i, budgetRemaining] != dp[i - 1, budgetRemaining])
-                {
-                    var expense = unpaidExpenses[i - 1];
                     selectedExpenses.Add(expense);
-                    budgetRemaining -= (int)expense.Amount;
+                    remainingBudget -= expense.Amount;
                 }
             }
 
@@ -63,7 +43,50 @@ namespace KitaKo.Services
             {
                 RecommendedExpenses = selectedExpenses,
                 TotalOptimizedCost = totalCost,
-                RemainingBudget = budget - totalCost
+                RemainingBudget = remainingBudget
+            };
+        }
+
+        /// <summary>
+        /// Calculates a composite score for an expense based on priority and urgency.
+        /// Higher score = higher priority to pay
+        /// </summary>
+        private decimal CalculateScore(Expenses expense)
+        {
+            // Priority weight: 1-5 (higher = more important)
+            decimal priorityScore = expense.Priority * 10;
+
+            // Urgency weight: based on days until due
+            decimal urgencyScore = CalculateUrgencyScore(CalculateDaysUntilDue(expense.DueDate));
+
+            // Combined score (60% priority, 40% urgency)
+            return (priorityScore * 0.6m) + (urgencyScore * 0.4m);
+        }
+
+        private int CalculateDaysUntilDue(DateTime dueDate)
+        {
+            return (dueDate.Date - DateTime.UtcNow.Date).Days;
+        }
+
+        /// <summary>
+        /// Calculates urgency score based on days until due.
+        /// Overdue items get highest urgency (50), then decreasing as deadline approaches.
+        /// </summary>
+        private decimal CalculateUrgencyScore(int daysUntilDue)
+        {
+            return daysUntilDue switch
+            {
+                < 0 => 50,      // Overdue: maximum urgency
+                0 => 48,        // Due today: second highest
+                1 => 40,        // Due tomorrow
+                2 => 35,
+                3 => 30,
+                4 => 25,
+                5 => 20,
+                6 => 15,
+                7 => 10,
+                8 or 9 or 10 => 5,
+                _ => 1           // More than 10 days: low urgency
             };
         }
     }

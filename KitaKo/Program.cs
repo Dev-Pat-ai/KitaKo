@@ -28,6 +28,7 @@ namespace KitaKo
             builder.Services.AddScoped<AuthService>();
             builder.Services.AddScoped<SalesService>();
             builder.Services.AddScoped<ExpensesService>();
+            builder.Services.AddScoped<KnapsackService>();
             builder.Services.AddScoped<UtangsService>();
             builder.Services.AddScoped<FinancialSettingsService>();
             builder.Services.AddScoped<StoredProductsService>();
