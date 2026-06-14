@@ -37,6 +37,7 @@ namespace KitaKo.Services
                 Amount = request.Amount,
                 DueDate = EnsureUtc(request.DueDate),
                 Priority = request.Priority,
+                Category = request.Category?.Trim().ToLowerInvariant(),
                 Paid = request.Paid,
                 CreatedDate = DateTime.UtcNow
             };
@@ -58,6 +59,7 @@ namespace KitaKo.Services
             expense.Amount = request.Amount;
             expense.DueDate = EnsureUtc(request.DueDate);
             expense.Priority = request.Priority;
+            expense.Category = request.Category?.Trim().ToLowerInvariant();
             expense.Paid = request.Paid;
 
             await _dbContext.SaveChangesAsync();
