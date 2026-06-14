@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace KitaKo.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260115071842_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260612000000_AddCategoryToExpenses")]
+    partial class AddCategoryToExpenses
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

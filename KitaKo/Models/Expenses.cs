@@ -45,6 +45,16 @@ namespace KitaKo.Models
     {
         public static ValidationResult? ValidateDueDate(DateTime dueDate, ValidationContext context)
         {
+            // Only validate due date for NEW expenses (not updates)
+            // If this is an update context, allow any date
+            var instance = context.ObjectInstance as Expenses;
+            if (instance?.Id > 0)
+            {
+                // This is an update, allow any date (user may be marking overdue expense as paid)
+                return ValidationResult.Success;
+            }
+            
+            // For new expenses, due date cannot be in the past
             if (dueDate < DateTime.UtcNow.Date)
             {
                 return new ValidationResult("Due date cannot be in the past");

@@ -62,7 +62,7 @@ async function saveFinancialSettings() {
     const settings = await fetchJson('/api/settings/financial', {
         method: 'PUT',
         body: JSON.stringify({
-            availableBudget,
+            availableBudget: availableBudget,
             dailySalesGoal: dailyGoal
         })
     });
@@ -888,16 +888,19 @@ function validateExpense(name, amount, dueDate) {
         return isValid;
     }
     
-    // Check if due date is in the past
-    const selectedDate = new Date(dueDate);
-    selectedDate.setHours(0, 0, 0, 0);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    if (selectedDate < today) {
-        document.getElementById('dueDateError').textContent = 'Due date cannot be in the past';
-        document.getElementById('dueDateError').classList.remove('hidden');
-        isValid = false;
+    // For NEW expenses only, check if due date is in the past
+    // Allow editing existing expenses with past due dates (to mark as paid, etc.)
+    if (!currentExpenseEditingId) {
+        const selectedDate = new Date(dueDate);
+        selectedDate.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (selectedDate < today) {
+            document.getElementById('dueDateError').textContent = 'Due date cannot be in the past for new expenses';
+            document.getElementById('dueDateError').classList.remove('hidden');
+            isValid = false;
+        }
     }
     
     return isValid;
@@ -1023,14 +1026,44 @@ async function deleteExpense(id) {
 async function updateBudget() {
     const newBudget = prompt('Enter new available budget:', availableBudget);
 
-    if (newBudget && !isNaN(newBudget) && parseFloat(newBudget) >= 0) {
-        availableBudget = parseFloat(newBudget);
-        await saveFinancialSettings();
-        await updateExpensesPage();
-        showNotification('Budget updated!', 'success');
-    } else if (newBudget !== null) {
+    if (newBudget === null) {
+        return;
+    }
+
+    const normalized = newBudget.trim().replace(/[₱,]/g, '');
+    const parsedBudget = Number(normalized);
+
+    if (normalized !== '' && Number.isFinite(parsedBudget) && parsedBudget >= 0) {
+        availableBudget = parsedBudget;
+        console.debug('Attempting to update budget to', availableBudget);
+        try {
+            await saveFinancialSettings();
+            await updateExpensesPage();
+            showNotification('Budget updated!', 'success');
+        } catch (error) {
+            console.error('Error updating budget:', error);
+            const msg = error?.message || 'Unable to update budget. Please try again.';
+            showNotification(`Unable to update budget: ${msg}`, 'error');
+        }
+    } else {
         showNotification('Invalid budget amount', 'error');
     }
+}
+
+function attachBudgetButton() {
+    const btn = document.getElementById('updateBudgetBtn');
+    if (!btn) return;
+    btn.addEventListener('click', (event) => {
+        console.debug('Update Budget button clicked');
+        updateBudget();
+    });
+    console.debug('Update Budget button bound');
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', attachBudgetButton);
+} else {
+    attachBudgetButton();
 }
 
 // ==================== PAGE RENDERING ====================

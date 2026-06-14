@@ -31,9 +31,16 @@ namespace KitaKo
             builder.Services.AddScoped<KnapsackService>();
             builder.Services.AddScoped<UtangsService>();
             builder.Services.AddScoped<FinancialSettingsService>();
+            builder.Services.AddScoped<StoredProductsService>();
+            builder.Services.AddScoped<InventoryService>();
             builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
-            builder.Services.AddControllersWithViews();
+            builder.Services.AddControllersWithViews()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+                    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+                });
 
             builder.Services.AddSession(options =>
             {
@@ -43,6 +50,21 @@ namespace KitaKo
             });
 
             var app = builder.Build();
+
+            // Apply any pending EF Core migrations at startup (development convenience)
+            using (var scope = app.Services.CreateScope())
+            {
+                try
+                {
+                    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                    db.Database.Migrate();
+                }
+                catch (Exception ex)
+                {
+                    // Log to console - let the app still start so developer can see the error
+                    Console.WriteLine("Failed applying migrations: " + ex.Message);
+                }
+            }
 
             app.UseSession();
 
