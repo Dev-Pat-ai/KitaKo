@@ -56,6 +56,25 @@ namespace KitaKo.Controllers
             }
         }
 
+        [HttpPut("{id}")]
+        public async Task<ActionResult<InventoryItem>> PutInventoryItem(int id, InventoryItemRequest request)
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                var item = await _inventoryService.UpdateInventoryItemAsync(userId, id, request);
+                return item == null ? NotFound() : Ok(item);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+        }
+
         [HttpPost("{id}/sell")]
         public async Task<ActionResult<InventorySale>> SellInventoryItem(int id, InventorySaleRequest request)
         {

@@ -68,6 +68,7 @@ namespace KitaKo.Controllers
         /// <summary>
         /// POST /api/expenses/optimize  { "budget": 5000.00 }
         /// Returns the knapsack optimization result for the current user's unpaid expenses.
+        /// Also exposed as GET /api/expenses/optimize?budget=... for convenience.
         /// </summary>
         [HttpPost("optimize")]
         public async Task<ActionResult<ExpenseOptimizationResult>> Optimize([FromBody] OptimizeRequest request)
@@ -75,6 +76,16 @@ namespace KitaKo.Controllers
             if (!TryGetCurrentUserId(out var userId)) return Unauthorized();
             var expenses = await _expensesService.GetExpensesAsync(userId);
             var result = _knapsackService.OptimizeExpenses(expenses, request.Budget);
+            return Ok(result);
+        }
+
+        [HttpGet("optimize")]
+        public async Task<ActionResult<ExpenseOptimizationResult>> OptimizeExpenses([FromQuery] decimal budget)
+        {
+            if (!TryGetCurrentUserId(out var userId)) return Unauthorized();
+            if (budget < 0) return BadRequest("Budget must be non-negative");
+            var expenses = await _expensesService.GetExpensesAsync(userId);
+            var result = _knapsackService.OptimizeExpenses(expenses, budget);
             return Ok(result);
         }
     }

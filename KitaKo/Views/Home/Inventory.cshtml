@@ -169,6 +169,86 @@
     </div>
 </div>
 
+<div id="quickAddInventoryModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 hidden">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">Add to Inventory</h3>
+            <button onclick="closeQuickAddInventoryModal()" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <input type="hidden" id="quickAddProductId" />
+        <div id="quickAddProductSummary" class="bg-orange-50 rounded-lg p-3 mb-4 text-sm font-semibold text-gray-700"></div>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Quantity / Stock</label>
+                <input type="number" id="quickAddQuantity" min="1" step="1" placeholder="0"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Cost / Buying Price</label>
+                <input type="number" id="quickAddCostPrice" min="0" step="0.01" placeholder="0.00"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Selling Price</label>
+                <input type="number" id="quickAddPrice" min="0" step="0.01" placeholder="0.00"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Expiration Date</label>
+                <input type="date" id="quickAddExpiration"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
+            </div>
+        </div>
+        <button onclick="saveQuickAddInventory()" class="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors mt-6">
+            Save Inventory
+        </button>
+    </div>
+</div>
+
+<div id="editInventoryModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 hidden">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">Edit Inventory Item</h3>
+            <button onclick="closeEditInventoryModal()" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <input type="hidden" id="editInventoryItemId" />
+        <div id="editInventorySummary" class="bg-orange-50 rounded-lg p-3 mb-4 text-sm font-semibold text-gray-700"></div>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Quantity / Stock</label>
+                <input type="number" id="editInventoryQuantity" min="0" step="1"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Cost / Buying Price</label>
+                <input type="number" id="editInventoryCostPrice" min="0" step="0.01"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Selling Price</label>
+                <input type="number" id="editInventoryPrice" min="0" step="0.01"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Expiration Date</label>
+                <input type="date" id="editInventoryExpiration"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
+            </div>
+        </div>
+        <button onclick="saveEditInventoryItem()" class="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors mt-6">
+            Save Changes
+        </button>
+    </div>
+</div>
+
 <div id="productModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 hidden">
     <div class="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-6">
@@ -657,7 +737,7 @@
                                 <td class="py-4 px-4">
                                     <div class="flex gap-2 justify-center">
                                         <button onclick="openProductModal(${product.id})" class="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm font-semibold hover:bg-blue-600">Edit</button>
-                                        <button onclick="deleteProduct(${product.id})" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-semibold hover:bg-red-600">Delete</button>
+                                        <button onclick="openQuickAddInventoryModal(${product.id})" class="bg-orange-500 text-white px-3 py-1 rounded-lg text-sm font-semibold hover:bg-orange-600">Add</button>
                                     </div>
                                 </td>
                             </tr>
@@ -704,17 +784,137 @@
                                 <td class="py-4 px-4 text-gray-600">${item.expirationDate ? formatDate(item.expirationDate) : '-'}</td>
                                 <td class="py-4 px-4 text-gray-600">${formatDate(item.dateAdded)}</td>
                                 <td class="py-4 px-4 text-center">
-                                    <button onclick="openSellInventoryModal(${item.id})"
-                                            class="bg-green-500 text-white px-3 py-1 rounded-lg text-sm font-semibold hover:bg-green-600 disabled:bg-gray-300"
-                                            ${item.quantity <= 0 ? 'disabled' : ''}>
-                                        Sell
-                                    </button>
+                                    <div class="flex gap-2 justify-center">
+                                        <button onclick="openEditInventoryModal(${item.id})"
+                                                class="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm font-semibold hover:bg-blue-600">
+                                            Edit
+                                        </button>
+                                        <button onclick="openSellInventoryModal(${item.id})"
+                                                class="bg-green-500 text-white px-3 py-1 rounded-lg text-sm font-semibold hover:bg-green-600 disabled:bg-gray-300"
+                                                ${item.quantity <= 0 ? 'disabled' : ''}>
+                                            Sell
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         `).join('')}
                     </tbody>
                 </table>
             `;
+        }
+
+        // ── Quick Add Inventory from Product Master List ──────────────────────
+        function openQuickAddInventoryModal(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            document.getElementById('quickAddProductId').value = productId;
+            document.getElementById('quickAddProductSummary').textContent =
+                `${product.productName} · ${product.category} · ${product.unitType}`;
+            document.getElementById('quickAddQuantity').value = '';
+            document.getElementById('quickAddCostPrice').value = product.costPrice > 0 ? product.costPrice : '';
+            document.getElementById('quickAddPrice').value = product.defaultPrice > 0 ? product.defaultPrice : '';
+            document.getElementById('quickAddExpiration').value = '';
+            document.getElementById('quickAddInventoryModal').classList.remove('hidden');
+            document.getElementById('quickAddQuantity').focus();
+        }
+
+        function closeQuickAddInventoryModal() {
+            document.getElementById('quickAddInventoryModal').classList.add('hidden');
+        }
+
+        async function saveQuickAddInventory() {
+            const productId = parseInt(document.getElementById('quickAddProductId').value, 10);
+            const quantity = parseInt(document.getElementById('quickAddQuantity').value, 10);
+            const costPrice = parseFloat(document.getElementById('quickAddCostPrice').value || '0');
+            const price = parseFloat(document.getElementById('quickAddPrice').value || '0');
+            const expirationDate = document.getElementById('quickAddExpiration').value || null;
+
+            if (!Number.isInteger(quantity) || quantity <= 0) {
+                alert('Quantity must be greater than 0.');
+                return;
+            }
+            if (!Number.isFinite(price) || price < 0) {
+                alert('Selling price must not be negative.');
+                return;
+            }
+            if (!Number.isFinite(costPrice) || costPrice < 0) {
+                alert('Cost price must not be negative.');
+                return;
+            }
+
+            try {
+                await fetchJson('/api/inventory', {
+                    method: 'POST',
+                    body: JSON.stringify({ productId, quantity, costPrice, price, expirationDate })
+                });
+                closeQuickAddInventoryModal();
+                await refreshInventoryPage();
+                showNotification('Inventory item saved.', 'success');
+            } catch (error) {
+                alert(error.message || 'Unable to save inventory item.');
+            }
+        }
+
+        // ── Edit Inventory Item ───────────────────────────────────────────────
+        function openEditInventoryModal(inventoryItemId) {
+            const item = inventoryItems.find(i => i.id === inventoryItemId);
+            if (!item) return;
+            document.getElementById('editInventoryItemId').value = inventoryItemId;
+            document.getElementById('editInventorySummary').textContent =
+                `${item.productName} · Product #${item.productId}`;
+            document.getElementById('editInventoryQuantity').value = item.quantity;
+            document.getElementById('editInventoryCostPrice').value = item.costPrice || 0;
+            document.getElementById('editInventoryPrice').value = item.price || 0;
+            document.getElementById('editInventoryExpiration').value =
+                item.expirationDate ? item.expirationDate.substring(0, 10) : '';
+            document.getElementById('editInventoryModal').classList.remove('hidden');
+            document.getElementById('editInventoryQuantity').focus();
+        }
+
+        function closeEditInventoryModal() {
+            document.getElementById('editInventoryModal').classList.add('hidden');
+        }
+
+        async function saveEditInventoryItem() {
+            const id = parseInt(document.getElementById('editInventoryItemId').value, 10);
+            const item = inventoryItems.find(i => i.id === id);
+            if (!item) return;
+
+            const quantity = parseInt(document.getElementById('editInventoryQuantity').value, 10);
+            const costPrice = parseFloat(document.getElementById('editInventoryCostPrice').value || '0');
+            const price = parseFloat(document.getElementById('editInventoryPrice').value || '0');
+            const expirationDate = document.getElementById('editInventoryExpiration').value || null;
+
+            if (!Number.isInteger(quantity) || quantity < 0) {
+                alert('Quantity must be 0 or greater.');
+                return;
+            }
+            if (!Number.isFinite(price) || price < 0) {
+                alert('Selling price must not be negative.');
+                return;
+            }
+            if (!Number.isFinite(costPrice) || costPrice < 0) {
+                alert('Cost price must not be negative.');
+                return;
+            }
+
+            try {
+                await fetchJson(`/api/inventory/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        productId: item.productId,
+                        quantity,
+                        costPrice,
+                        price,
+                        expirationDate
+                    })
+                });
+                closeEditInventoryModal();
+                await refreshInventoryPage();
+                showNotification('Inventory item updated.', 'success');
+            } catch (error) {
+                alert(error.message || 'Unable to update inventory item.');
+            }
         }
 
         function formatMoney(value) {
@@ -728,6 +928,36 @@
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function showNotification(message, type = 'success') {
+            const existing = document.getElementById('appNotification');
+            if (existing) existing.remove();
+            const div = document.createElement('div');
+            div.id = 'appNotification';
+            div.className = `fixed bottom-6 right-6 z-50 px-6 py-3 rounded-xl shadow-lg text-white font-semibold transition-all ${type === 'success' ? 'bg-green-500' : 'bg-red-500'}`;
+            div.textContent = message;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        async function fetchJson(url, options = {}) {
+            const res = await fetch(url, {
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+                ...options
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.message || `Request failed (${res.status})`);
+            }
+            return res.status === 204 ? null : res.json();
         }
     </script>
 }
