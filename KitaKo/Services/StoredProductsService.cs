@@ -27,14 +27,7 @@ namespace KitaKo.Services
 
         public async Task<List<StoredProduct>> GetProductsAsync(int userId, string? search = null)
         {
-            var existingCount = await _dbContext.StoredProducts
-                .CountAsync(p => p.UserId == userId && !p.IsArchived);
-
-            // Lazy-seed: if user has no products, seed defaults automatically
-            if (existingCount == 0)
-            {
-                await SeedDefaultStoredProductsAsync(userId);
-            }
+            await EnsureDefaultStoredProductsAsync(userId);
 
             var query = _dbContext.StoredProducts
                 .Where(p => p.UserId == userId && !p.IsArchived);
@@ -50,11 +43,10 @@ namespace KitaKo.Services
 
             return await query
                 .OrderBy(p => p.ProductName)
-                .Take(50)
                 .ToListAsync();
         }
 
-        private async Task SeedDefaultStoredProductsAsync(int userId)
+        private async Task EnsureDefaultStoredProductsAsync(int userId)
         {
             var defaultProducts = GetDefaultStoredProducts(userId).ToList();
             if (!defaultProducts.Any())
@@ -62,7 +54,21 @@ namespace KitaKo.Services
                 return;
             }
 
-            _dbContext.StoredProducts.AddRange(defaultProducts);
+            var existingProductNames = new HashSet<string>(await _dbContext.StoredProducts
+                .Where(p => p.UserId == userId && !p.IsArchived)
+                .Select(p => p.ProductName.ToLowerInvariant())
+                .ToListAsync(), StringComparer.OrdinalIgnoreCase);
+
+            var missingProducts = defaultProducts
+                .Where(p => !existingProductNames.Contains(p.ProductName.ToLowerInvariant()))
+                .ToList();
+
+            if (!missingProducts.Any())
+            {
+                return;
+            }
+
+            _dbContext.StoredProducts.AddRange(missingProducts);
             await _dbContext.SaveChangesAsync();
         }
 
@@ -93,7 +99,7 @@ namespace KitaKo.Services
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .OrderBy(path => path);
 
-            return productFiles.Select(relativePath =>
+            var imageProducts = productFiles.Select(relativePath =>
             {
                 var productName = Path.GetFileNameWithoutExtension(relativePath)
                     .Replace('-', ' ')
@@ -117,6 +123,31 @@ namespace KitaKo.Services
                     IsArchived = false
                 };
             });
+
+            var staticProducts = GetStaticDefaultProducts(userId);
+
+            return imageProducts
+                .Concat(staticProducts)
+                .GroupBy(p => p.ProductName.ToLowerInvariant())
+                .Select(group => group.First());
+        }
+
+        private IEnumerable<StoredProduct> GetStaticDefaultProducts(int userId)
+        {
+            yield return new StoredProduct
+            {
+                UserId = userId,
+                ProductName = "Ice",
+                Category = "Frozen",
+                DefaultPrice = 5.00m,
+                CostPrice = 2.00m,
+                Barcode = null,
+                UnitType = "Piece",
+                Supplier = "Own",
+                ProductImage = null,
+                DateCreated = DateTime.UtcNow,
+                IsArchived = false
+            };
         }
 
         private static string DetermineProductCategory(string productName)
